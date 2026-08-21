@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<meta name="theme-color" content="#1B2430">
+<title>Chat Repuestos V10</title>
+<link rel="icon" href="data:,">
+<style>
+  :root{
+    --bg: #ECEAE3;
+    --panel: #FFFFFF;
+    --ink: #1B2430;
+    --ink-soft: #4B5563;
+    --steel: #3B5C74;
+    --steel-dark: #2A4356;
+    --safety: #E8590C;
+    --safety-dark: #C24A09;
+    --line: #D8D5CB;
+    --ok: #2F7D4F;
+    --radius: 10px;
+  }
+  *{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    background: var(--ink);
+    background-image: linear-gradient(160deg, var(--ink) 0%, var(--steel-dark) 100%);
+    color: #fff;
+    padding: 18px 16px 22px;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+  }
+  .header-row{
+    display:flex;
+    align-items:center;
+    gap: 12px;
+  }
+  .mark{
+    width: 42px; height: 42px;
+    flex: none;
+    border-radius: 8px;
+    background: var(--safety);
+    display:flex; align-items:center; justify-content:center;
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: -0.5px;
+    box-shadow: inset 0 -3px 0 rgba(0,0,0,0.25), 0 2px 6px rgba(0,0,0,0.3);
+    color: #1B2430;
+  }
+  h1{
+    margin:0;
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+  .subtitle{
+    margin: 1px 0 0;
+    font-size: 12.5px;
+    color: rgba(255,255,255,0.65);
+    font-weight: 500;
+  }
+
+  /* ---------- Search ---------- */
+  .search-wrap{
+    margin-top: 14px;
+    position: relative;
+  }
+  #search{
+    width: 100%;
+    padding: 14px 46px 14px 44px;
+    border-radius: var(--radius);
+    border: none;
+    font-size: 16.5px;
+    font-weight: 600;
+    background: rgba(255,255,255,0.96);
+    color: var(--ink);
+    outline: none;
+  }
+  #search::placeholder{ color: #8B93A0; font-weight: 500; }
+  .search-icon{
+    position:absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    width: 18px; height:18px; opacity:0.55;
+  }
+  .clear-btn{
+    position:absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    background: #DADFE4; color:#4B5563; border:none;
+    width: 28px; height: 28px; border-radius: 50%;
+    font-size: 16px; line-height: 1; cursor:pointer;
+    display:none; align-items:center; justify-content:center;
+  }
+  .clear-btn.show{ display:flex; }
+
+  /* ---------- Filter chips ---------- */
+  .chips{
+    display:flex; gap:8px; overflow-x:auto; margin-top: 12px;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+  .chips::-webkit-scrollbar{ display:none; }
+  .chip{
+    flex: none;
+    padding: 7px 13px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.18);
+    color: rgba(255,255,255,0.85);
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+  }
+  .chip.active{
+    background: var(--safety);
+    border-color: var(--safety);
+    color: #1B2430;
+  }
+
+  /* ---------- Results ---------- */
+  main{
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+  .status-row{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom: 10px;
+    padding: 0 2px;
+  }
+  #count{
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+
+  .card{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 14px 14px 12px;
+    margin-bottom: 10px;
+    position: relative;
+    animation: rise .18s ease;
+  }
+  @keyframes rise{ from{ opacity:0; transform: translateY(4px);} to{opacity:1; transform:none;} }
+
+  .card-top{
+    display:flex; justify-content:space-between; align-items:flex-start;
+    gap: 10px;
+  }
+  .sap-tag{
+    background: var(--ink);
+    color: #fff;
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.5px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    display:inline-flex;
+    align-items:center;
+    gap: 6px;
+    border-bottom: 3px solid var(--safety);
+  }
+  .sap-tag small{
+    font-family: -apple-system, sans-serif;
+    font-weight: 700;
+    font-size: 9px;
+    opacity: 0.6;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .copy-btn{
+    flex: none;
+    border: 1px solid var(--line);
+    background: #F4F3EF;
+    color: var(--steel-dark);
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 7px 10px;
+    border-radius: 7px;
+    cursor: pointer;
+  }
+  .copy-btn.copied{
+    background: var(--ok);
+    color: #fff;
+    border-color: var(--ok);
+  }
+
+  .desc{
+    margin: 10px 0 8px;
+    font-size: 14.5px;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--ink);
+  }
+  .meta-row{
+    display:flex; flex-wrap:wrap; gap: 8px;
+    font-size: 11.5px;
+  }
+  .meta{
+    background: #EFF3F5;
+    color: var(--steel-dark);
+    padding: 4px 9px;
+    border-radius: 6px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.2px;
+  }
+  .meta.tipo{ background: #FCEEE3; color: var(--safety-dark); }
+
+  mark{
+    background: #FFE9A8;
+    color: inherit;
+    border-radius: 3px;
+    padding: 0 1px;
+  }
+
+  .empty{
+    text-align:center;
+    padding: 60px 20px;
+    color: var(--ink-soft);
+  }
+  .empty .big{
+    font-size: 42px;
+    margin-bottom: 6px;
+  }
+  .empty h3{ margin: 6px 0 4px; color: var(--ink); font-size: 16px; }
+  .empty p{ margin: 0; font-size: 13.5px; line-height:1.4; }
+
+  footer{
+    text-align:center;
+    font-size: 11px;
+    color: #9CA3AF;
+    padding: 18px 16px 4px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-row">
+    <div class="mark">CR</div>
+    <div>
+      <h1>Chat Repuestos V10</h1>
+      <p class="subtitle" id="dataInfo">Buscador de códigos de repuestos</p>
+    </div>
+  </div>
+
+  <div class="search-wrap">
+    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="#8B93A0" stroke-width="2.4" stroke-linecap="round">
+      <circle cx="11" cy="11" r="7"></circle>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+    </svg>
+    <input id="search" type="text" inputmode="search" autocomplete="off" autocorrect="off" autocapitalize="off"
+           placeholder="Busca por código SAP, N° de parte o descripción...">
+    <button class="clear-btn" id="clearBtn" aria-label="Borrar busqueda">&times;</button>
+  </div>
+
+  <div class="chips" id="chips"></div>
+</header>
+
+<main>
+  <div class="status-row">
+    <span id="count"></span>
+  </div>
+  <div id="results"></div>
+</main>
+
+<footer>Chat Repuestos V10 &middot; Funciona sin conexión una vez cargada &middot; Datos locales, sin límite de consultas</footer>
+
+<script>
+const DATA = [{"tipo": "CADENAS DE PALILLOS", "parte": "5769094", "sap": "12037812", "desc": "CADENA DE LA FRUTA COMMANDER 5769094"}, {"tipo": "CORREAS", "parte": "135475", "sap": "12036413", "desc": "CORREA 1 DE VENTILADOR/ALTERNADOR (JD R135594) (CTM 135475)"}, {"tipo": "CORREAS SACUDIDOR", "parte": "30343", "sap": "12035622", "desc": "CORREA LARGA 14MGT2240-37 SACUDIDOR (CTM30343)"}, {"tipo": "CORREAS SACUDIDOR", "parte": "70974", "sap": "12035702", "desc": "CORREA CORTA 14MGT1190-37 SACUDIDOR (CTM70974)"}, {"tipo": "CORREAS SACUDIDOR", "parte": "71442", "sap": "12035706", "desc": "CORREA MEDIANA 14MGT 1750-20 SACUDIDOR (CTM71442)"}, {"tipo": "CORREAS SACUDIDOR", "parte": "135469", "sap": "12037748", "desc": "CORREA 12008MGT24 PESA SACUD(CTM 135469)"}, {"tipo": "CORREAS MOTOR", "parte": "135463", "sap": "12035788", "desc": "CORREA 2 DE VENTIILADOR/ALTERNADOR (STAR 135463)"}, {"tipo": "ACOPLAMIENTOS", "parte": "5765727", "sap": "12037980", "desc": "CADENA PLÁST.ACOPLE COMPRES.(CTM5765727)"}, {"tipo": "CADENAS DE PALILLOS", "parte": "5759191", "sap": "12037709", "desc": "CADENA DE LA GRILLA (COMMANDER5759191)"}, {"tipo": "CADENAS DE PALILLOS", "parte": "5759204", "sap": "12037708", "desc": "CADENA DE LA FRUTA COMM. (CTM 5759204)"}, {"tipo": "CADENAS DE PALILLOS", "parte": "5765722", "sap": "12037654", "desc": "CADENA DE APLASTE (JOHNSON5765722)"}, {"tipo": "CADENAS DE PALILLOS", "parte": "5765770", "sap": "12037811", "desc": "CADENA TRANSV.BAJO SACUDIDOR (COMMANDER5765770) (COM.284)"}, {"tipo": "CADENAS DE PALILLOS", "parte": "5765872", "sap": "12037706", "desc": "CADENA ELEVADORA ENTREGA SELECTORES (COMMANDER5765872)"}, {"tipo": "CADENAS DE PALILLOS", "parte": "5765929", "sap": "12037707", "desc": "CADENA TRANSV. ENTREGA DESCARGA (COMMANDER5765929)"}, {"tipo": "CADENAS DE PALILLOS", "parte": "5766154", "sap": "12037711", "desc": "CADENA DESCARGA COMMANDER (COMMANDER5766154)"}, {"tipo": "CADENAS DE PALILLOS", "parte": "5766308", "sap": "12035667", "desc": "CADENA DE LA FRUTA (STAR 5766308)???"}, {"tipo": "CADENAS DE PALILLOS", "parte": "5766559", "sap": "12035670", "desc": "CADENA TRANSV. BAJO SACUDIDOR (STAR 5766559)"}, {"tipo": "CADENAS DE PALILLOS", "parte": "5766838", "sap": "12035673", "desc": "CADENA DE LA TRAMPA DE TERRÓN (STAR-COMM. 5766838)"}, {"tipo": "CADENAS DE PALILLOS", "parte": "5766859", "sap": "12035674", "desc": "CADENA DE APLASTE (STAR-COMMANDER5766859)"}, {"tipo": "CADENAS DE PALILLOS", "parte": "5766882", "sap": "12035675", "desc": "CADENA CABEZAL (JOHNSON5766882)"}, {"tipo": "CADENAS DE PALILLOS", "parte": "5768312", "sap": "12035678", "desc": "CADENA DE LA GRILLA DESPAJE (STAR 5768312)"}, {"tipo": "CADENAS DE PALILLOS", "parte": "5800209", "sap": "12035681", "desc": "CADENA DESCARGA (STAR 5800209)"}, {"tipo": "CADENAS DE PALILLOS", "parte": "5803841", "sap": "12037710", "desc": "CADENA TRANSV.BAJO SACUDIDOR (COMMANDER5803841) (COM.285)"}, {"tipo": "CADENAS DE PALILLOS", "parte": "9110619", "sap": "12037666", "desc": "CADENA DE LA FRUTA (JOHNSON9110619)"}, {"tipo": "CADENAS DE PALILLOS", "parte": "9111444", "sap": "12037663", "desc": "CADENA ELEVADORA ENTREGA SELECTORES (JOHNSON9111444)"}, {"tipo": "CADENAS DE PALILLOS", "parte": "9115006", "sap": "12037661", "desc": "CADENA DE LA TRAMPA DE TERRÓN (JOHNSON9115006)"}, {"tipo": "CADENAS DE PALILLOS", "parte": "9116902", "sap": "12037664", "desc": "CADENA GRILLA JOHN. 24 PALILLOS (CTM9116902)"}, {"tipo": "CADENAS DE PALILLOS", "parte": "9116903", "sap": "12037665", "desc": "CADENA GRILLA JOHN. 21 PALILLOS (CTM 9116903)"}, {"tipo": "CADENAS DE PALILLOS", "parte": "9116945", "sap": "12037813", "desc": "CADENA DESCARGA (JOHNSON9116945)"}, {"tipo": "CADENAS DE PALILLOS", "parte": "5766882-X", "sap": "12035799", "desc": "CADENA CABEZAL (STAR-COM. 5766882-X)"}, {"tipo": "CADENAS DE PALILLOS", "parte": "9112665-1", "sap": "12037662", "desc": "CADENA TRANSV. BAJO SACUDIDOR (JOHNSON9112665-1)"}, {"tipo": "CADENAS DE PALILLOS", "parte": "5769094", "sap": "12037812", "desc": "CADENA DE LA FRUTA (COMMANDER5769094) (REVISAR SI ES CORRECTO)"}, {"tipo": "CADENAS DE PALILLOS", "parte": "5805516", "sap": "12036501", "desc": "CADENA DE LA FRUTA (STAR 5805516) (3 BANDAS)"}, {"tipo": "CADENAS DE PALILLOS", "parte": "9116901-1", "sap": "12037828", "desc": "CADENA GRILLA 30 PALILLOS"}, {"tipo": "RODAMIENTOS", "parte": "71308", "sap": "12038395", "desc": "RODAMIENTO PESA SACUDIDOR JOHNSON/STAR (71308)"}, {"tipo": "RODAMIENTOS", "parte": "71646", "sap": "12035708", "desc": "SOPORTE C/ROD. PESAS SACUD.JOHNSON/STAR (71646)"}, {"tipo": "RODAMIENTOS", "parte": "71308-1", "sap": "12043818", "desc": "RODAMIENTO PESA SACUDIDOR JOHNSON/STAR (71308-1)"}, {"tipo": "KIT REP./MANT.", "parte": "71309", "sap": "12037810", "desc": "KIT SELLO ROD.PESAS SACUD. JOHNSON/STAR (71309)"}];
+
+const searchInput = document.getElementById('search');
+const clearBtn = document.getElementById('clearBtn');
+const resultsEl = document.getElementById('results');
+const countEl = document.getElementById('count');
+const chipsEl = document.getElementById('chips');
+const dataInfo = document.getElementById('dataInfo');
+
+let activeTipo = 'TODOS';
+
+dataInfo.textContent = DATA.length + ' repuestos cargados';
+
+function norm(s){
+  return (s || '').toString()
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+function buildChips(){
+  const tipos = ['TODOS', ...new Set(DATA.map(d => d.tipo))];
+  chipsEl.innerHTML = tipos.map(t =>
+    `<div class="chip${t==='TODOS' ? ' active' : ''}" data-tipo="${t.replace(/"/g,'&quot;')}">${t}</div>`
+  ).join('');
+  chipsEl.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      activeTipo = chip.dataset.tipo;
+      chipsEl.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      render();
+    });
+  });
+}
+
+function highlight(text, q){
+  if(!q) return escapeHtml(text);
+  const idx = norm(text).indexOf(q);
+  if(idx === -1) return escapeHtml(text);
+  const raw = text;
+  return escapeHtml(raw.slice(0, idx)) + '<mark>' + escapeHtml(raw.slice(idx, idx+q.length)) + '</mark>' + escapeHtml(raw.slice(idx+q.length));
+}
+
+function escapeHtml(s){
+  return (s||'').toString().replace(/[&<>"']/g, m => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[m]));
+}
+
+function render(){
+  const qRaw = searchInput.value.trim();
+  const q = norm(qRaw);
+  clearBtn.classList.toggle('show', qRaw.length > 0);
+
+  let list = DATA;
+  if(activeTipo !== 'TODOS'){
+    list = list.filter(d => d.tipo === activeTipo);
+  }
+  if(q){
+    list = list.filter(d =>
+      norm(d.sap).includes(q) ||
+      norm(d.parte).includes(q) ||
+      norm(d.desc).includes(q) ||
+      norm(d.tipo).includes(q)
+    );
+  }
+
+  countEl.textContent = list.length + (list.length === 1 ? ' resultado' : ' resultados');
+
+  if(list.length === 0){
+    resultsEl.innerHTML = `
+      <div class="empty">
+        <div class="big">🔧</div>
+        <h3>Sin resultados</h3>
+        <p>No encontramos coincidencias.<br>Revisa el código o prueba con otra palabra.</p>
+      </div>`;
+    return;
+  }
+
+  resultsEl.innerHTML = list.map((d, i) => `
+    <div class="card">
+      <div class="card-top">
+        <span class="sap-tag"><small>SAP</small>${highlight(d.sap, q)}</span>
+        <button class="copy-btn" data-sap="${escapeHtml(d.sap)}">Copiar</button>
+      </div>
+      <p class="desc">${highlight(d.desc, q)}</p>
+      <div class="meta-row">
+        <span class="meta tipo">${highlight(d.tipo, q)}</span>
+        <span class="meta">N° PARTE ${highlight(d.parte, q)}</span>
+      </div>
+    </div>
+  `).join('');
+
+  resultsEl.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const val = btn.dataset.sap;
+      const done = () => {
+        const original = 'Copiar';
+        btn.textContent = 'Copiado ✓';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = original; btn.classList.remove('copied'); }, 1200);
+      };
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(val).then(done).catch(done);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = val;
+        document.body.appendChild(ta);
+        ta.select();
+        try{ document.execCommand('copy'); }catch(e){}
+        document.body.removeChild(ta);
+        done();
+      }
+    });
+  });
+}
+
+searchInput.addEventListener('input', render);
+clearBtn.addEventListener('click', () => {
+  searchInput.value = '';
+  searchInput.focus();
+  render();
+});
+
+buildChips();
+render();
+</script>
+</body>
+</html>
