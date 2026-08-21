@@ -186,34 +186,46 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
-  .copy-btn{
+  .copy-icon{
     flex: none;
     border: 1px solid var(--line);
     background: #F4F3EF;
     color: var(--steel-dark);
-    font-size: 11.5px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    padding: 7px 10px;
-    border-radius: 7px;
+    width: 34px; height: 34px;
+    border-radius: 8px;
     cursor: pointer;
+    display:flex; align-items:center; justify-content:center;
   }
-  .copy-btn.copied{
+  .copy-icon.copied{
     background: var(--ok);
     color: #fff;
     border-color: var(--ok);
   }
+  .copy-icon.inline{
+    width: 20px; height: 20px;
+    border-radius: 5px;
+    border-color: transparent;
+    background: rgba(59,92,116,0.12);
+    vertical-align: -5px;
+    margin-left: 2px;
+  }
 
-  .desc{
+  .field-row{
+    display:flex;
+    align-items:flex-start;
+    gap: 8px;
     margin: 10px 0 8px;
+  }
+  .desc{
+    margin: 0;
     font-size: 14.5px;
     font-weight: 600;
     line-height: 1.35;
     color: var(--ink);
+    flex: 1;
   }
   .meta-row{
-    display:flex; flex-wrap:wrap; gap: 8px;
+    display:flex; flex-wrap:wrap; align-items:center; gap: 8px;
     font-size: 11.5px;
   }
   .meta{
@@ -224,8 +236,11 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.2px;
+    display:inline-flex;
+    align-items:center;
   }
   .meta.tipo{ background: #FCEEE3; color: var(--safety-dark); }
+  .meta.parte-meta{ gap: 4px; }
 
   mark{
     background: #FFE9A8;
@@ -271,7 +286,7 @@
       <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
     </svg>
     <input id="search" type="text" inputmode="search" autocomplete="off" autocorrect="off" autocapitalize="off"
-           placeholder="Busca por código SAP, N° de parte o descripción...">
+           placeholder="Ej: cadena fruta, correa sacudidor, código SAP...">
     <button class="clear-btn" id="clearBtn" aria-label="Borrar busqueda">&times;</button>
   </div>
 
@@ -301,10 +316,43 @@ let activeTipo = 'TODOS';
 
 dataInfo.textContent = DATA.length + ' repuestos cargados';
 
+// Sinónimos: normaliza jerga de taller a la palabra que aparece en la descripción.
+// Se aplica sobre cada palabra escrita por el mecánico antes de comparar.
+const SYNONYMS = {
+  'fruta': ['fruta'],
+  'grilla': ['grilla', 'zaranda', 'criba'],
+  'palillos': ['palillos', 'dedos'],
+  'sacudidor': ['sacudidor', 'zarandeo', 'shaker'],
+  'correa': ['correa', 'banda'],
+  'cadena': ['cadena'],
+  'rodamiento': ['rodamiento', 'rulemán', 'ruleman', 'bearing'],
+  'descarga': ['descarga', 'salida'],
+  'terron': ['terron', 'terrón', 'piedra'],
+  'aplaste': ['aplaste', 'compresion', 'compresión'],
+  'cabezal': ['cabezal', 'header'],
+  'ventilador': ['ventilador', 'fan'],
+  'alternador': ['alternador'],
+  'motor': ['motor', 'diesel'],
+};
+
 function norm(s){
   return (s || '').toString()
     .toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .trim();
+}
+
+// Un token de búsqueda hace match si aparece literal en el texto,
+// o si el texto contiene alguna palabra sinónima de ese token.
+function tokenMatches(haystack, token){
+  if(haystack.includes(token)) return true;
+  for(const key in SYNONYMS){
+    const group = SYNONYMS[key].map(norm);
+    if(group.includes(token)){
+      return group.some(syn => haystack.includes(syn));
+    }
+  }
+  return false;
 }
 
 function buildChips(){
@@ -322,12 +370,47 @@ function buildChips(){
   });
 }
 
-function highlight(text, q){
-  if(!q) return escapeHtml(text);
-  const idx = norm(text).indexOf(q);
-  if(idx === -1) return escapeHtml(text);
-  const raw = text;
-  return escapeHtml(raw.slice(0, idx)) + '<mark>' + escapeHtml(raw.slice(idx, idx+q.length)) + '</mark>' + escapeHtml(raw.slice(idx+q.length));
+// Resalta cualquiera de los tokens de búsqueda dentro del texto (pueden ser varios, en cualquier orden).
+function highlight(text, tokens){
+  const raw = (text || '').toString();
+  if(!tokens || !tokens.length) return escapeHtml(raw);
+  const normRaw = norm(raw);
+
+  // arma lista de [inicio, fin] a resaltar, incluyendo variantes por sinónimo
+  let ranges = [];
+  tokens.forEach(tok => {
+    const variants = new Set([tok]);
+    for(const key in SYNONYMS){
+      const group = SYNONYMS[key].map(norm);
+      if(group.includes(tok)) group.forEach(v => variants.add(v));
+    }
+    variants.forEach(v => {
+      if(!v) return;
+      let from = 0, idx;
+      while((idx = normRaw.indexOf(v, from)) !== -1){
+        ranges.push([idx, idx + v.length]);
+        from = idx + v.length;
+      }
+    });
+  });
+  if(!ranges.length) return escapeHtml(raw);
+
+  ranges.sort((a,b) => a[0]-b[0]);
+  const merged = [ranges[0]];
+  for(let i=1;i<ranges.length;i++){
+    const last = merged[merged.length-1];
+    if(ranges[i][0] <= last[1]) last[1] = Math.max(last[1], ranges[i][1]);
+    else merged.push(ranges[i]);
+  }
+
+  let out = '', cursor = 0;
+  merged.forEach(([s,e]) => {
+    out += escapeHtml(raw.slice(cursor, s));
+    out += '<mark>' + escapeHtml(raw.slice(s, e)) + '</mark>';
+    cursor = e;
+  });
+  out += escapeHtml(raw.slice(cursor));
+  return out;
 }
 
 function escapeHtml(s){
@@ -338,20 +421,19 @@ function escapeHtml(s){
 
 function render(){
   const qRaw = searchInput.value.trim();
-  const q = norm(qRaw);
+  const tokens = norm(qRaw).split(/\s+/).filter(Boolean);
   clearBtn.classList.toggle('show', qRaw.length > 0);
 
   let list = DATA;
   if(activeTipo !== 'TODOS'){
     list = list.filter(d => d.tipo === activeTipo);
   }
-  if(q){
-    list = list.filter(d =>
-      norm(d.sap).includes(q) ||
-      norm(d.parte).includes(q) ||
-      norm(d.desc).includes(q) ||
-      norm(d.tipo).includes(q)
-    );
+  if(tokens.length){
+    list = list.filter(d => {
+      const haystack = norm([d.sap, d.parte, d.desc, d.tipo].join(' '));
+      // cada palabra escrita debe encontrar coincidencia (directa o por sinónimo), en cualquier orden
+      return tokens.every(tok => tokenMatches(haystack, tok));
+    });
   }
 
   countEl.textContent = list.length + (list.length === 1 ? ' resultado' : ' resultados');
@@ -369,25 +451,41 @@ function render(){
   resultsEl.innerHTML = list.map((d, i) => `
     <div class="card">
       <div class="card-top">
-        <span class="sap-tag"><small>SAP</small>${highlight(d.sap, q)}</span>
-        <button class="copy-btn" data-sap="${escapeHtml(d.sap)}">Copiar</button>
+        <span class="sap-tag"><small>SAP</small>${highlight(d.sap, tokens)}</span>
+        <button class="copy-icon" data-value="${escapeHtml(d.sap)}" data-label="Código SAP" aria-label="Copiar código SAP">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"></path></svg>
+        </button>
       </div>
-      <p class="desc">${highlight(d.desc, q)}</p>
+
+      <div class="field-row">
+        <p class="desc">${highlight(d.desc, tokens)}</p>
+        <button class="copy-icon" data-value="${escapeHtml(d.desc)}" data-label="Descripción" aria-label="Copiar descripción">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"></path></svg>
+        </button>
+      </div>
+
       <div class="meta-row">
-        <span class="meta tipo">${highlight(d.tipo, q)}</span>
-        <span class="meta">N° PARTE ${highlight(d.parte, q)}</span>
+        <span class="meta tipo">${highlight(d.tipo, tokens)}</span>
+        <span class="meta parte-meta">
+          N° PARTE ${highlight(d.parte, tokens)}
+          <button class="copy-icon inline" data-value="${escapeHtml(d.parte)}" data-label="N° de parte" aria-label="Copiar N° de parte">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"></path></svg>
+          </button>
+        </span>
       </div>
     </div>
   `).join('');
 
-  resultsEl.querySelectorAll('.copy-btn').forEach(btn => {
+  resultsEl.querySelectorAll('.copy-icon').forEach(btn => {
     btn.addEventListener('click', () => {
-      const val = btn.dataset.sap;
+      const val = btn.dataset.value;
       const done = () => {
-        const original = 'Copiar';
-        btn.textContent = 'Copiado ✓';
         btn.classList.add('copied');
-        setTimeout(() => { btn.textContent = original; btn.classList.remove('copied'); }, 1200);
+        btn.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          btn.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"></path></svg>';
+        }, 1100);
       };
       if(navigator.clipboard && navigator.clipboard.writeText){
         navigator.clipboard.writeText(val).then(done).catch(done);
