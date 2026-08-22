@@ -346,11 +346,29 @@
     padding: 16px;
   }
   .foto-overlay.open{ display: flex; }
+  .foto-viewport{
+    width: 100%;
+    height: 78vh;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: none;
+  }
   .foto-overlay img{
     max-width: 100%;
     max-height: 78vh;
     border-radius: 6px;
     background: #fff;
+    touch-action: none;
+    transform-origin: center center;
+    will-change: transform;
+  }
+  .foto-hint{
+    color: rgba(255,255,255,0.5);
+    font-size: 11px;
+    text-align: center;
+    margin-top: 4px;
   }
   .foto-caption{
     color: rgba(255,255,255,0.85);
@@ -438,7 +456,10 @@
 
 <div class="foto-overlay" id="fotoOverlay">
   <button class="foto-close" id="fotoClose" aria-label="Cerrar foto">&times;</button>
-  <img id="fotoOverlayImg" src="" alt="Foto del repuesto">
+  <div class="foto-viewport" id="fotoViewport">
+    <img id="fotoOverlayImg" src="" alt="Foto del repuesto">
+  </div>
+  <p class="foto-hint">Pellizca para acercar &middot; doble toque para zoom rápido</p>
   <p class="foto-caption" id="fotoOverlayCaption"></p>
 </div>
 
@@ -655,6 +676,7 @@ function render(){
       document.getElementById('fotoOverlayImg').src = btn.dataset.foto;
       document.getElementById('fotoOverlayCaption').textContent = btn.dataset.caption || '';
       document.getElementById('fotoOverlay').classList.add('open');
+      resetFotoZoom();
     });
   });
 
@@ -704,6 +726,79 @@ buildChips();
 render();
 
 const fotoOverlay = document.getElementById('fotoOverlay');
+const fotoImg = document.getElementById('fotoOverlayImg');
+const fotoViewport = document.getElementById('fotoViewport');
+
+let zoomScale = 1, panX = 0, panY = 0;
+let startDist = 0, startScale = 1;
+let isPanning = false, panStartX = 0, panStartY = 0, panOriginX = 0, panOriginY = 0;
+let lastTapTime = 0;
+
+function applyFotoTransform(){
+  fotoImg.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomScale})`;
+}
+
+function resetFotoZoom(){
+  zoomScale = 1; panX = 0; panY = 0;
+  applyFotoTransform();
+}
+
+function clampScale(s){ return Math.min(4, Math.max(1, s)); }
+
+function touchDist(t1, t2){
+  return Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+}
+
+fotoViewport.addEventListener('touchstart', (e) => {
+  if(e.touches.length === 2){
+    startDist = touchDist(e.touches[0], e.touches[1]);
+    startScale = zoomScale;
+    isPanning = false;
+  } else if(e.touches.length === 1){
+    const now = Date.now();
+    if(now - lastTapTime < 300){
+      // double tap: toggle zoom
+      zoomScale = zoomScale > 1 ? 1 : 2.5;
+      panX = 0; panY = 0;
+      applyFotoTransform();
+      lastTapTime = 0;
+      return;
+    }
+    lastTapTime = now;
+    if(zoomScale > 1){
+      isPanning = true;
+      panStartX = e.touches[0].clientX;
+      panStartY = e.touches[0].clientY;
+      panOriginX = panX;
+      panOriginY = panY;
+    }
+  }
+}, { passive: true });
+
+fotoViewport.addEventListener('touchmove', (e) => {
+  if(e.touches.length === 2){
+    const dist = touchDist(e.touches[0], e.touches[1]);
+    zoomScale = clampScale(startScale * (dist / startDist));
+    applyFotoTransform();
+  } else if(e.touches.length === 1 && isPanning){
+    panX = panOriginX + (e.touches[0].clientX - panStartX);
+    panY = panOriginY + (e.touches[0].clientY - panStartY);
+    applyFotoTransform();
+  }
+}, { passive: true });
+
+fotoViewport.addEventListener('touchend', () => {
+  isPanning = false;
+  if(zoomScale < 1.05){ zoomScale = 1; panX = 0; panY = 0; applyFotoTransform(); }
+});
+
+// desktop fallback: double-click to toggle zoom
+fotoImg.addEventListener('dblclick', () => {
+  zoomScale = zoomScale > 1 ? 1 : 2.5;
+  panX = 0; panY = 0;
+  applyFotoTransform();
+});
+
 document.getElementById('fotoClose').addEventListener('click', () => {
   fotoOverlay.classList.remove('open');
 });
