@@ -546,20 +546,19 @@ function render(){
         </span>
       </div>
 
+      ${d.specs && Object.keys(d.specs).length ? `
       <button class="specs-toggle${matchOnlyInSpecs ? ' open' : ''}" data-target="specs-${i}">
         <span class="btn-label">${matchOnlyInSpecs ? 'Ocultar especificaciones' : 'Ver especificaciones'}</span>
         <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
       </button>
       <div class="specs-box${matchOnlyInSpecs ? ' open' : ''}" id="specs-${i}">
         <p class="specs-title">Especificaciones</p>
-        ${d.specs && Object.keys(d.specs).length ? `
         <div class="specs-grid">
           ${Object.entries(d.specs).map(([label, value]) => `
             <div class="spec-row"><span class="spec-label">${escapeHtml(label)}:</span> <span class="spec-value">${highlight(value, tokens)}</span></div>
           `).join('')}
-        </div>` : `
-        <p class="specs-empty">Aún no hay especificaciones cargadas para este repuesto.</p>`}
-      </div>
+        </div>
+      </div>` : ''}
     </div>
   `;
   }).join('');
