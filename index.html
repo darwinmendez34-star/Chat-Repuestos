@@ -396,6 +396,198 @@
     0%, 100% { transform: scale(1); opacity: 1; }
     50% { transform: scale(1.18); opacity: 0.75; }
   }
+
+  /* ---------- Pedido (order list) ---------- */
+  .order-row{
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 9px 10px;
+    background: #F4F3EF;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+  }
+  .order-row.active{
+    background: #FCEEE3;
+    border-color: #F0C29B;
+  }
+  .order-label{
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: var(--ink-soft);
+  }
+  .order-row.active .order-label{ color: var(--safety-dark); }
+  .qty-stepper{
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+  .qty-btn{
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--steel-dark);
+    font-size: 18px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .qty-btn:active{ background: #EFF3F5; }
+  .qty-value{
+    width: 40px;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--ink);
+  }
+
+  .cart-fab{
+    position: fixed;
+    bottom: 18px;
+    right: 18px;
+    background: var(--safety);
+    color: var(--ink);
+    font-weight: 800;
+    font-size: 14px;
+    padding: 13px 18px;
+    border-radius: 999px;
+    border: none;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+    display: none;
+    align-items: center;
+    gap: 8px;
+    z-index: 50;
+    cursor: pointer;
+  }
+  .cart-fab.show{ display: flex; }
+  .cart-fab svg{ flex: none; }
+
+  .cart-overlay{
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15,20,26,0.55);
+    z-index: 90;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .cart-overlay.open{ display: flex; }
+  .cart-sheet{
+    background: var(--bg);
+    width: 100%;
+    max-width: 640px;
+    max-height: 86vh;
+    border-radius: 16px 16px 0 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .cart-header{
+    background: var(--ink);
+    background-image: linear-gradient(160deg, var(--ink) 0%, var(--steel-dark) 100%);
+    color: #fff;
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .cart-header h2{
+    margin: 0;
+    font-size: 16px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .cart-close{
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #fff;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .cart-list{
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 16px;
+  }
+  .cart-item{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .cart-item-info{ flex: 1; min-width: 0; }
+  .cart-item-sap{
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--ink);
+  }
+  .cart-item-desc{
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    margin: 2px 0 0;
+    line-height: 1.3;
+  }
+  .cart-item-remove{
+    flex: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: #B3261E;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .cart-empty{
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--ink-soft);
+    font-size: 14px;
+  }
+  .cart-footer{
+    padding: 14px 16px;
+    border-top: 1px solid var(--line);
+    background: var(--panel);
+    display: flex;
+    gap: 10px;
+  }
+  .cart-btn{
+    flex: 1;
+    padding: 13px 10px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 700;
+    font-size: 13.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+  }
+  .cart-btn.copy{ background: var(--safety); color: var(--ink); }
+  .cart-btn.copy.copied{ background: var(--ok); color: #fff; }
+  .cart-btn.clear{ background: #EFF3F5; color: var(--steel-dark); }
   .foto-overlay img{
     display: block;
     max-width: 100%;
@@ -510,6 +702,25 @@
   <div id="results"></div>
 </main>
 
+<button class="cart-fab" id="cartFab">
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+  <span id="cartFabCount">0</span> en el pedido
+</button>
+
+<div class="cart-overlay" id="cartOverlay">
+  <div class="cart-sheet">
+    <div class="cart-header">
+      <h2>Mi pedido</h2>
+      <button class="cart-close" id="cartClose" aria-label="Cerrar pedido">&times;</button>
+    </div>
+    <div class="cart-list" id="cartList"></div>
+    <div class="cart-footer">
+      <button class="cart-btn clear" id="cartClear">Vaciar</button>
+      <button class="cart-btn copy" id="cartCopy">Copiar pedido</button>
+    </div>
+  </div>
+</div>
+
 <div class="foto-overlay" id="fotoOverlay">
   <button class="foto-close" id="fotoClose" aria-label="Cerrar foto">&times;</button>
   <div class="foto-viewport" id="fotoViewport">
@@ -539,6 +750,91 @@ const chipsEl = document.getElementById('chips');
 const dataInfo = document.getElementById('dataInfo');
 
 let activeTipo = 'TODOS';
+
+// ---------- Pedido (order list) ----------
+// Guardado en el propio celular (localStorage): cada mecánico arma su lista por separado.
+const CART_KEY = 'chatRepuestosPedido_v1';
+let cart = {};
+try {
+  const saved = localStorage.getItem(CART_KEY);
+  if (saved) cart = JSON.parse(saved);
+} catch(e) { cart = {}; }
+
+function saveCart(){
+  try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch(e) {}
+}
+
+function cartCount(){
+  return Object.values(cart).reduce((sum, q) => sum + q, 0);
+}
+
+function updateCartFab(){
+  const fab = document.getElementById('cartFab');
+  const count = cartCount();
+  document.getElementById('cartFabCount').textContent = count;
+  fab.classList.toggle('show', count > 0);
+}
+
+function setQty(parte, qty){
+  qty = Math.max(0, qty);
+  if (qty === 0) {
+    delete cart[parte];
+  } else {
+    cart[parte] = qty;
+  }
+  saveCart();
+  updateCartFab();
+  // reflect the change on the visible card, if present
+  const idx = DATA.findIndex(d => d.parte === parte);
+  if (idx !== -1) {
+    const qtyEl = document.getElementById('qty-' + idx);
+    const rowEl = document.getElementById('order-' + idx);
+    if (qtyEl) qtyEl.textContent = qty;
+    if (rowEl) rowEl.classList.toggle('active', qty > 0);
+  }
+}
+
+function renderCartList(){
+  const listEl = document.getElementById('cartList');
+  const partes = Object.keys(cart);
+  if (partes.length === 0) {
+    listEl.innerHTML = '<div class="cart-empty">Todavía no agregaste repuestos.<br>Buscá y usá el selector de cantidad en cada tarjeta.</div>';
+    return;
+  }
+  listEl.innerHTML = partes.map(parte => {
+    const item = DATA.find(d => d.parte === parte);
+    if (!item) return '';
+    return `
+      <div class="cart-item">
+        <div class="cart-item-info">
+          <div class="cart-item-sap">SAP ${escapeHtml(item.sap)} &middot; Cant: ${cart[parte]}</div>
+          <p class="cart-item-desc">${escapeHtml(item.desc)}</p>
+        </div>
+        <button class="cart-item-remove" data-parte="${escapeHtml(parte)}" aria-label="Quitar del pedido">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"></path><path d="M19 6l-1 14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1L5 6"></path></svg>
+        </button>
+      </div>`;
+  }).join('');
+
+  listEl.querySelectorAll('.cart-item-remove').forEach(btn => {
+    btn.addEventListener('click', () => {
+      setQty(btn.dataset.parte, 0);
+      renderCartList();
+    });
+  });
+}
+
+function buildPedidoText(){
+  const partes = Object.keys(cart);
+  const lines = ['PEDIDO DE REPUESTOS - Chat Repuestos V10', ''];
+  partes.forEach(parte => {
+    const item = DATA.find(d => d.parte === parte);
+    if (!item) return;
+    lines.push(`SAP ${item.sap} | N° PARTE ${item.parte} | ${item.desc} | Cant: ${cart[parte]}`);
+  });
+  lines.push('', `Total de repuestos distintos: ${partes.length}`);
+  return lines.join('\n');
+}
 
 dataInfo.textContent = DATA.length + ' repuestos cargados';
 
@@ -707,6 +1003,15 @@ function render(){
         </span>
       </div>
 
+      <div class="order-row${(cart[d.parte]||0) > 0 ? ' active' : ''}" id="order-${i}">
+        <span class="order-label">Cantidad para pedido</span>
+        <div class="qty-stepper">
+          <button class="qty-btn qty-minus" data-parte="${escapeHtml(d.parte)}" aria-label="Restar">&minus;</button>
+          <span class="qty-value" id="qty-${i}">${cart[d.parte]||0}</span>
+          <button class="qty-btn qty-plus" data-parte="${escapeHtml(d.parte)}" aria-label="Sumar">&plus;</button>
+        </div>
+      </div>
+
       ${(d.specs && Object.keys(d.specs).length) || d.foto ? `
       <div class="actions-row">
         ${d.specs && Object.keys(d.specs).length ? `
@@ -733,6 +1038,19 @@ function render(){
     </div>
   `;
   }).join('');
+
+  resultsEl.querySelectorAll('.qty-plus').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const parte = btn.dataset.parte;
+      setQty(parte, (cart[parte] || 0) + 1);
+    });
+  });
+  resultsEl.querySelectorAll('.qty-minus').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const parte = btn.dataset.parte;
+      setQty(parte, (cart[parte] || 0) - 1);
+    });
+  });
 
   resultsEl.querySelectorAll('.foto-toggle').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -809,6 +1127,49 @@ clearBtn.addEventListener('click', () => {
 
 buildChips();
 render();
+updateCartFab();
+
+const cartFab = document.getElementById('cartFab');
+const cartOverlay = document.getElementById('cartOverlay');
+cartFab.addEventListener('click', () => {
+  renderCartList();
+  cartOverlay.classList.add('open');
+});
+document.getElementById('cartClose').addEventListener('click', () => {
+  cartOverlay.classList.remove('open');
+});
+cartOverlay.addEventListener('click', (e) => {
+  if (e.target === cartOverlay) cartOverlay.classList.remove('open');
+});
+document.getElementById('cartClear').addEventListener('click', () => {
+  if (Object.keys(cart).length === 0) return;
+  cart = {};
+  saveCart();
+  updateCartFab();
+  renderCartList();
+  render(); // refresh visible qty steppers on cards
+});
+document.getElementById('cartCopy').addEventListener('click', () => {
+  const text = buildPedidoText();
+  const btn = document.getElementById('cartCopy');
+  const done = () => {
+    const original = btn.textContent;
+    btn.textContent = '✓ Copiado';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = original; btn.classList.remove('copied'); }, 1400);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(done);
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch(e) {}
+    document.body.removeChild(ta);
+    done();
+  }
+});
 
 const fotoOverlay = document.getElementById('fotoOverlay');
 const fotoImg = document.getElementById('fotoOverlayImg');
