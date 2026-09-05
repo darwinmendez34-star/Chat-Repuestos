@@ -784,14 +784,12 @@ function setQty(parte, qty){
   }
   saveCart();
   updateCartFab();
-  // reflect the change on the visible card, if present
-  const idx = DATA.findIndex(d => d.parte === parte);
-  if (idx !== -1) {
-    const qtyEl = document.getElementById('qty-' + idx);
-    const rowEl = document.getElementById('order-' + idx);
-    if (qtyEl) qtyEl.textContent = qty;
-    if (rowEl) rowEl.classList.toggle('active', qty > 0);
-  }
+  // reflect the change on the visible card, if present (found by part number, not list position)
+  const sel = CSS.escape(parte);
+  const qtyEl = document.querySelector(`.qty-value[data-parte-qty="${sel}"]`);
+  const rowEl = document.querySelector(`.order-row[data-parte-row="${sel}"]`);
+  if (qtyEl) qtyEl.textContent = qty;
+  if (rowEl) rowEl.classList.toggle('active', qty > 0);
 }
 
 function renderCartList(){
@@ -830,7 +828,7 @@ function buildPedidoText(){
   partes.forEach(parte => {
     const item = DATA.find(d => d.parte === parte);
     if (!item) return;
-    lines.push(`SAP ${item.sap} | N° PARTE ${item.parte} | ${item.desc} | Cant: ${cart[parte]}`);
+    lines.push(`${item.sap} - Cant: ${cart[parte]}`);
   });
   lines.push('', `Total de repuestos distintos: ${partes.length}`);
   return lines.join('\n');
@@ -1003,11 +1001,11 @@ function render(){
         </span>
       </div>
 
-      <div class="order-row${(cart[d.parte]||0) > 0 ? ' active' : ''}" id="order-${i}">
+      <div class="order-row${(cart[d.parte]||0) > 0 ? ' active' : ''}" data-parte-row="${escapeHtml(d.parte)}">
         <span class="order-label">Cantidad para pedido</span>
         <div class="qty-stepper">
           <button class="qty-btn qty-minus" data-parte="${escapeHtml(d.parte)}" aria-label="Restar">&minus;</button>
-          <span class="qty-value" id="qty-${i}">${cart[d.parte]||0}</span>
+          <span class="qty-value" data-parte-qty="${escapeHtml(d.parte)}">${cart[d.parte]||0}</span>
           <button class="qty-btn qty-plus" data-parte="${escapeHtml(d.parte)}" aria-label="Sumar">&plus;</button>
         </div>
       </div>
